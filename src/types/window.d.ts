@@ -4,8 +4,10 @@ declare global {
   interface Window {
     prompter: {
       loadPrompts: () => Promise<PromptDocument>
+      openPromptsFile: () => Promise<void>
     }
   }
 }
 
 export {}
+

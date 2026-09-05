@@ -5,7 +5,7 @@
   "description": "Boilerplate",
   "main": ".vite/build/main.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "electron-forge start",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
@@ -63,3 +63,4 @@
     "react-dom": "^18.3.1"
   }
 }
+

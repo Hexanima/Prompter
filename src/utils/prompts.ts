@@ -1,11 +1,18 @@
+export type PromptFieldType = 'text' | 'textarea'
+
 export interface PromptField {
   name: string
   value: string
+  label?: string
+  help?: string
+  placeholder?: string
+  type?: PromptFieldType
 }
 
 export interface Prompt {
   id: number
   title: string
+  description?: string
   content: string
 }
 
@@ -22,17 +29,76 @@ export interface PromptSegment {
 }
 
 const placeholderPattern = /{{([A-Za-z_][A-Za-z0-9_]*)}}/g
+const fieldMetadataPattern = /<!--\s*@field\s+([A-Za-z_][A-Za-z0-9_]*)\s*([\s\S]*?)-->/g
+const promptMetadataPattern = /^\s*<!--\s*@prompt\s*([\s\S]*?)-->\s*/
+
+function parseMetadataProperties(body: string): Record<string, string> {
+  return body.split(/\r?\n/).reduce<Record<string, string>>((properties, line) => {
+    const separatorIndex = line.indexOf(':')
+    if (separatorIndex === -1) {
+      return properties
+    }
+
+    const key = line.slice(0, separatorIndex).trim()
+    const value = line.slice(separatorIndex + 1).trim()
+    if (key && value) {
+      properties[key] = value
+    }
+
+    return properties
+  }, {})
+}
+
+function parseFieldDefinition(name: string, body: string): PromptField {
+  const properties = parseMetadataProperties(body)
+  const field: PromptField = {
+    name,
+    value: properties.default ?? ''
+  }
+
+  if (properties.label) field.label = properties.label
+  if (properties.help) field.help = properties.help
+  if (properties.placeholder) field.placeholder = properties.placeholder
+  if (properties.type === 'text' || properties.type === 'textarea') {
+    field.type = properties.type
+  }
+
+  return field
+}
+
+function parsePromptBlock(block: string, id: number): Prompt {
+  const metadataMatch = block.match(promptMetadataPattern)
+  const metadata = metadataMatch ? parseMetadataProperties(metadataMatch[1]) : {}
+  const content = (metadataMatch ? block.slice(metadataMatch[0].length) : block).trim()
+  const prompt: Prompt = {
+    id,
+    title: metadata.title ?? `Prompt ${id + 1}`,
+    content
+  }
+
+  if (metadata.description) {
+    prompt.description = metadata.description
+  }
+
+  return prompt
+}
 
 export function parsePromptMarkdown(markdown: string): PromptDocument {
-  const prompts = markdown
+  const fieldDefinitions = new Map<string, PromptField>()
+  const markdownWithoutFields = markdown.replace(fieldMetadataPattern, (_, name: string, body: string) => {
+    if (!fieldDefinitions.has(name)) {
+      fieldDefinitions.set(name, parseFieldDefinition(name, body))
+    }
+    return ''
+  })
+
+  const prompts = markdownWithoutFields
     .split(/^\s*---\s*$/m)
-    .map((content) => content.trim())
+    .map((block) => block.trim())
     .filter(Boolean)
-    .map((content, id) => ({
-      id,
-      title: `Prompt ${id + 1}`,
-      content
-    }))
+    .map((block, id) => parsePromptBlock(block, id))
+    .filter((prompt) => prompt.content.length > 0)
+    .map((prompt, id) => ({ ...prompt, id, title: prompt.title === `Prompt ${prompt.id + 1}` ? `Prompt ${id + 1}` : prompt.title }))
 
   const fields: PromptField[] = []
   const fieldNames = new Set<string>()
@@ -42,7 +108,8 @@ export function parsePromptMarkdown(markdown: string): PromptDocument {
       const name = match[1]
       if (!fieldNames.has(name)) {
         fieldNames.add(name)
-        fields.push({ name, value: '' })
+        const definition = fieldDefinitions.get(name)
+        fields.push(definition ? { ...definition } : { name, value: '' })
       }
     }
   }
@@ -95,5 +162,3 @@ export function getPromptSegments(content: string, values: Record<string, string
 
   return segments
 }
-
-

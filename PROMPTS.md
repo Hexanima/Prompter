@@ -1,3 +1,92 @@
+<!-- @field RAMA_OBJETIVO
+label: Rama objetivo
+help: Rama que contiene los cambios propios a revisar.
+placeholder: feature/mi-tarea
+type: text
+-->
+
+<!-- @field RAMA_DESTINO
+label: Rama destino
+help: Rama base contra la que se compara.
+placeholder: dev
+type: text
+default: dev
+-->
+
+<!-- @field TITULO_TAREA
+label: Título de la tarea
+help: Nombre corto de la tarea o funcionalidad.
+placeholder: Ejemplo: Implementar login
+type: text
+-->
+
+<!-- @field DESCRIPCION_TAREA
+label: Descripción y criterios de aceptación
+help: Contexto, alcance y condiciones verificables de la tarea.
+placeholder: Pegá aquí la descripción completa de la tarea...
+type: textarea
+-->
+
+<!-- @field CODIGO_TAREA
+label: Código de la tarea
+help: Identificador de Jira o ticket.
+placeholder: Ejemplo: PROJ-123
+type: text
+-->
+
+<!-- @field PRD
+label: PRD
+help: Pegá aquí el PRD que querés descomponer.
+placeholder: Pegá aquí el PRD completo...
+type: textarea
+-->
+
+<!-- @field AUDITORIA
+label: Auditoría
+help: Pegá aquí el resultado de la auditoría.
+placeholder: Pegá aquí el output de auditoría...
+type: textarea
+-->
+
+<!-- @field PRD_O_PDF
+label: PDF o PRD
+help: Pegá el PRD o el contexto extraído del PDF.
+placeholder: Pegá aquí el PRD o contexto del PDF...
+type: textarea
+-->
+
+<!-- @field PROYECTO
+label: Proyecto
+help: Proyecto cuyo trabajo querés analizar.
+placeholder: Ejemplo: Mi proyecto
+type: text
+-->
+
+<!-- @field FECHA_INICIO
+label: Fecha de inicio
+help: Inicio del período a analizar.
+placeholder: AAAA-MM-DD
+type: text
+-->
+
+<!-- @field FECHA_FIN
+label: Fecha de fin
+help: Fin del período a analizar.
+placeholder: AAAA-MM-DD
+type: text
+-->
+
+<!-- @field ARCHIVO_REPORTE
+label: Archivo de reporte
+help: Nombre del archivo markdown que se debe completar.
+placeholder: Ejemplo: Reporte septiembre
+type: text
+-->
+
+<!-- @prompt
+title: Auditar rama contra otra rama
+description: Revisa únicamente los cambios propios de una rama usando triple punto.
+-->
 Auditá origin/{{RAMA_OBJETIVO}} contra origin/{{RAMA_DESTINO}} usando triple punto (git diff origin/{{RAMA_DESTINO}}...origin/{{RAMA_OBJETIVO}}) para leer solo los commits propios de la rama.
 NO hagas cambios. NO ejecutes tests, el CI se encarga de eso.
  
@@ -11,6 +100,10 @@ Si hay observaciones, generá al final un bloque markdown listo para comentario 
 
 ---
 
+<!-- @prompt
+title: Preparar plan de implementación
+description: Genera un plan técnico accionable y orientado a TDD.
+-->
 Prepará un plan de implementación para la tarea {{CODIGO_TAREA}}. NO hagas commits.
  
 Revisá el código existente para entender el estado actual antes de planificar.
@@ -25,6 +118,10 @@ Seguí TDD: incluí en el plan qué tests escribir antes de implementar.
 
 ---
 
+<!-- @prompt
+title: Evaluar implementación de una tarea
+description: Determina si la tarea está completamente, parcialmente o no implementada.
+-->
 Evaluá si la siguiente tarea ya está implementada en origin/dev.
 NO hagas cambios. NO ejecutes tests.
  
@@ -41,6 +138,10 @@ Revisá el código existente y determiná:
 
 ---
 
+<!-- @prompt
+title: Generar PRD desde una propuesta
+description: Convierte una propuesta del cliente en un PRD alineado con el código existente.
+-->
 Analizá el PDF adjunto (propuesta del cliente) y el código existente del proyecto.
 Generá un PRD en markdown contemplando los cambios necesarios.
 NO hagas cambios. NO hagas commits.
@@ -53,6 +154,10 @@ El PRD debe incluir:
 
 ---
 
+<!-- @prompt
+title: Descomponer PRD en tareas
+description: Divide un PRD en tareas de desarrollo pequeñas, accionables y estimables.
+-->
 Sos un tech lead senior. Te voy a pasar un PRD y tu tarea es descomponerlo en tareas de desarrollo pequeñas y accionables.
 
 Para cada tarea:
@@ -72,10 +177,14 @@ Reglas:
 Formato de salida: Markdown, agrupado por fase o feature según esté organizado el PRD.
 
 PRD:
-[PEGAR PRD ACÁ]
+{{PRD}}
 
 ---
 
+<!-- @prompt
+title: Descomponer auditoría en tareas
+description: Convierte las observaciones de una auditoría en tareas de desarrollo.
+-->
 Sos un tech lead senior. Te voy a pasar una auditoria y tu tarea es descomponerlo en tareas de desarrollo pequeñas y accionables. 
 
 Para cada tarea:
@@ -96,46 +205,10 @@ Formato de salida: Markdown, agrupado por fase o feature según esté organizado
 
 ---
 
-Actuá como un Technical Lead senior. A continuación te proporcionaré el output de una auditoría de código. Tu objetivo es convertir cada observación en una tarea lista para subir a Jira.
-
-**Reglas:**
-1. Cada tarea dentro de un bloque markdown separado (` ```markdown `) para copiar directo a Jira sin romper el formato.
-2. NO uses prefijos en los títulos (no "Tarea 1:", "Ticket 2:", etc.).
-3. Analizá dependencias entre tareas y aclarálo en "Actividades vinculadas".
-4. Asigná prioridad basada en el impacto: Crítica / Alta / Media / Baja.
-5. Si hay ejemplos de código, incluilos con su formato correspondiente (` ```tsx `, ` ```ts `, etc.).
-
-**Formato por tarea:**
-
-```markdown
-### [Título descriptivo]
-
-**Detalles clave**
-* Prioridad: [Crítica / Alta / Media / Baja]
-* Estimación sugerida: [S / M / L / XL]
-* Repo: [frontend / backend / adminPanel]
-
-**Descripción:**
-[Historia de usuario: "Como [rol], necesito que... para..."]
-
-**Descripción técnica:**
-[Detalle del problema, archivo:línea, contexto de por qué ocurre]
-
-[Bloque de código si aplica]
-
-**Criterios de aceptación:**
-* [Condición específica y verificable]
-
-**Actividades vinculadas:**
-* [blocks / is blocked by]: [Título de tarea relacionada, o "Ninguna"
-```
-
-Auditoría:
-[PEGAR OUTPUT DE AUDITORÍA ACÁ]
-
-
----
-
+<!-- @prompt
+title: Auditar PRD contra el código
+description: Evalúa cada requisito del PRD contra la implementación existente.
+-->
 Actuá como un Tech Lead senior. Voy a pasarte un PDF/PRD y tu tarea es auditarlo contra el código existente del proyecto.
 
 Para cada punto evaluá:
@@ -161,10 +234,14 @@ Para cada ⚠️ y ❌ incluí:
 **Formato de salida:** Markdown, agrupado por feature o sección según esté organizado el PRD.
 
 PDF/PRD:
-[ADJUNTAR PDF O PEGAR PRD ACÁ]
+{{PRD_O_PDF}}
 
 ---
 
+<!-- @prompt
+title: Analizar horas del proyecto
+description: Completa un reporte profesional usando Jira, Confluence y los registros de horas.
+-->
 Analiza el trabajo realizado en {{PROYECTO}} durante el periodo comprendido entre {{FECHA_INICIO}} y {{FECHA_FIN}}, consultando Jira y Confluence.
 
 Adjunto tres elementos:

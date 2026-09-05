@@ -1,22 +1,44 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import started from 'electron-squirrel-startup'
 
+import { ensureEditablePromptsFile, getPromptPaths } from './utils/prompts-storage'
 import { parsePromptMarkdown } from './utils/prompts'
 
 if (started) {
   app.quit()
 }
 
-const getPromptsPath = () =>
-  app.isPackaged
-    ? path.join(process.resourcesPath, 'PROMPTS.md')
-    : path.join(app.getAppPath(), 'PROMPTS.md')
+const getPromptPathsForApp = () =>
+  getPromptPaths({
+    isPackaged: app.isPackaged,
+    appPath: app.getAppPath(),
+    resourcesPath: process.resourcesPath,
+    userDataPath: app.getPath('userData')
+  })
+
+let editablePromptsPath: Promise<string> | undefined
+
+const getEditablePromptsPath = () => {
+  editablePromptsPath ??= ensureEditablePromptsFile(getPromptPathsForApp(), {
+    access: (filePath) => fs.access(filePath).then(() => undefined),
+    mkdir: (directoryPath, options) => fs.mkdir(directoryPath, options).then(() => undefined),
+    copyFile: (source, destination) => fs.copyFile(source, destination)
+  })
+  return editablePromptsPath
+}
 
 ipcMain.handle('prompts:load', async () => {
-  const markdown = await fs.readFile(getPromptsPath(), 'utf8')
+  const markdown = await fs.readFile(await getEditablePromptsPath(), 'utf8')
   return parsePromptMarkdown(markdown)
+})
+
+ipcMain.handle('prompts:open', async () => {
+  const error = await shell.openPath(await getEditablePromptsPath())
+  if (error) {
+    throw new Error(error)
+  }
 })
 
 const createWindow = () => {
@@ -52,3 +74,5 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+
