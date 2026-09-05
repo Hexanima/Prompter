@@ -16,7 +16,7 @@
     "noEmit": true,
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
     
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "isolatedModules": true,
     "resolveJsonModule": true,
     "strict": true,
@@ -25,3 +25,6 @@
   "include": ["src"],
   "exclude": ["node_modules"]
 }
+
+
+
