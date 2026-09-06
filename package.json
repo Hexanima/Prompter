@@ -1,8 +1,8 @@
 {
-  "name": "electronforge-vite-react-ts-tailwindcss-eslint-vitest",
-  "productName": "electronforge-vite-react-ts-tailwindcss-eslint-vitest",
+  "name": "prompter",
+  "productName": "Prompter",
   "version": "1.0.0",
-  "description": "Boilerplate",
+  "description": "Gestor de prompts reutilizables",
   "main": ".vite/build/main.js",
   "scripts": {
     "dev": "electron-forge start",
