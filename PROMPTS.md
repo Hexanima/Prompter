@@ -1,11 +1,13 @@
-<!-- @field RAMA_OBJETIVO
+<!--
+@field RAMA_OBJETIVO
 label: Rama objetivo
 help: Rama que contiene los cambios propios a revisar.
 placeholder: feature/mi-tarea
 type: text
 -->
 
-<!-- @field RAMA_DESTINO
+<!--
+@field RAMA_DESTINO
 label: Rama destino
 help: Rama base contra la que se compara.
 placeholder: dev
@@ -13,77 +15,72 @@ type: text
 default: dev
 -->
 
-<!-- @field TITULO_TAREA
+<!--
+@field TITULO_TAREA
 label: Título de la tarea
 help: Nombre corto de la tarea o funcionalidad.
 placeholder: Ejemplo: Implementar login
 type: text
 -->
 
-<!-- @field DESCRIPCION_TAREA
+<!--
+@field DESCRIPCION_TAREA
 label: Descripción y criterios de aceptación
 help: Contexto, alcance y condiciones verificables de la tarea.
 placeholder: Pegá aquí la descripción completa de la tarea...
 type: textarea
 -->
 
-<!-- @field CODIGO_TAREA
+<!--
+@field CODIGO_TAREA
 label: Código de la tarea
 help: Identificador de Jira o ticket.
 placeholder: Ejemplo: PROJ-123
 type: text
 -->
 
-<!-- @field PRD
+<!--
+@field PRD
 label: PRD
 help: Pegá aquí el PRD que querés descomponer.
 placeholder: Pegá aquí el PRD completo...
 type: textarea
 -->
 
-<!-- @field AUDITORIA
-label: Auditoría
-help: Pegá aquí el resultado de la auditoría.
-placeholder: Pegá aquí el output de auditoría...
-type: textarea
--->
-
-<!-- @field PRD_O_PDF
-label: PDF o PRD
-help: Pegá el PRD o el contexto extraído del PDF.
-placeholder: Pegá aquí el PRD o contexto del PDF...
-type: textarea
--->
-
-<!-- @field PROYECTO
+<!--
+@field PROYECTO
 label: Proyecto
 help: Proyecto cuyo trabajo querés analizar.
 placeholder: Ejemplo: Mi proyecto
 type: text
 -->
 
-<!-- @field FECHA_INICIO
+<!--
+@field FECHA_INICIO
 label: Fecha de inicio
 help: Inicio del período a analizar.
 placeholder: AAAA-MM-DD
 type: text
 -->
 
-<!-- @field FECHA_FIN
+<!--
+@field FECHA_FIN
 label: Fecha de fin
 help: Fin del período a analizar.
 placeholder: AAAA-MM-DD
 type: text
 -->
 
-<!-- @field ARCHIVO_REPORTE
+<!--
+@field ARCHIVO_REPORTE
 label: Archivo de reporte
 help: Nombre del archivo markdown que se debe completar.
 placeholder: Ejemplo: Reporte septiembre
 type: text
 -->
 
-<!-- @prompt
+<!--
+@prompt
 title: Auditar rama contra otra rama
 description: Revisa únicamente los cambios propios de una rama usando triple punto.
 -->
@@ -97,10 +94,9 @@ Si hay observaciones, generá al final un bloque markdown listo para comentario 
  
 [Descripcion tarea / Criterios de aceptación]
 {{DESCRIPCION_TAREA}}
-
 ---
-
-<!-- @prompt
+<!--
+@prompt
 title: Preparar plan de implementación
 description: Genera un plan técnico accionable y orientado a TDD.
 -->
@@ -115,10 +111,9 @@ Seguí TDD: incluí en el plan qué tests escribir antes de implementar.
  
 [Descripcion / Criterios de aceptación]
 {{DESCRIPCION_TAREA}}
-
 ---
-
-<!-- @prompt
+<!--
+@prompt
 title: Evaluar implementación de una tarea
 description: Determina si la tarea está completamente, parcialmente o no implementada.
 -->
@@ -135,10 +130,9 @@ Revisá el código existente y determiná:
  
 [Descripcion / Criterios de aceptación]
 {{DESCRIPCION_TAREA}}
-
 ---
-
-<!-- @prompt
+<!--
+@prompt
 title: Generar PRD desde una propuesta
 description: Convierte una propuesta del cliente en un PRD alineado con el código existente.
 -->
@@ -151,10 +145,9 @@ El PRD debe incluir:
 - Funcionalidades requeridas
 - Cambios necesarios en el proyecto (frontend, backend, adminPanel, web según corresponda)
 - Criterios de aceptación por funcionalidad
-
 ---
-
-<!-- @prompt
+<!--
+@prompt
 title: Descomponer PRD en tareas
 description: Divide un PRD en tareas de desarrollo pequeñas, accionables y estimables.
 -->
@@ -178,10 +171,9 @@ Formato de salida: Markdown, agrupado por fase o feature según esté organizado
 
 PRD:
 {{PRD}}
-
 ---
-
-<!-- @prompt
+<!--
+@prompt
 title: Descomponer auditoría en tareas
 description: Convierte las observaciones de una auditoría en tareas de desarrollo.
 -->
@@ -202,10 +194,9 @@ Reglas:
 - Si la auditoria tiene ambigüedades que bloquean el desarrollo, listarlas al final como "Preguntas abiertas" antes de poder estimar esas tareas. 
 
 Formato de salida: Markdown, agrupado por fase o feature según esté organizado el PRD.
-
 ---
-
-<!-- @prompt
+<!--
+@prompt
 title: Auditar PRD contra el código
 description: Evalúa cada requisito del PRD contra la implementación existente.
 -->
@@ -234,11 +225,10 @@ Para cada ⚠️ y ❌ incluí:
 **Formato de salida:** Markdown, agrupado por feature o sección según esté organizado el PRD.
 
 PDF/PRD:
-{{PRD_O_PDF}}
-
+{{PRD}}
 ---
-
-<!-- @prompt
+<!--
+@prompt
 title: Analizar horas del proyecto
 description: Completa un reporte profesional usando Jira, Confluence y los registros de horas.
 -->

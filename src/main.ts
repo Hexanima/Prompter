@@ -4,7 +4,7 @@ import path from 'node:path'
 import started from 'electron-squirrel-startup'
 
 import { ensureEditablePromptsFile, getPromptPaths } from './utils/prompts-storage'
-import { parsePromptMarkdown } from './utils/prompts'
+import { parsePromptMarkdown, serializePromptMarkdown, type PromptDocument } from './utils/prompts'
 
 if (started) {
   app.quit()
@@ -13,7 +13,7 @@ if (started) {
 const getPromptPathsForApp = () =>
   getPromptPaths({
     isPackaged: app.isPackaged,
-    appPath: app.getAppPath(),
+    appPath: app.isPackaged ? app.getAppPath() : process.cwd(),
     resourcesPath: process.resourcesPath,
     userDataPath: app.getPath('userData')
   })
@@ -39,6 +39,12 @@ ipcMain.handle('prompts:open', async () => {
   if (error) {
     throw new Error(error)
   }
+})
+
+ipcMain.handle('prompts:save', async (_event, document: PromptDocument) => {
+  const promptsPath = await getEditablePromptsPath()
+  await fs.copyFile(promptsPath, promptsPath + '.backup')
+  await fs.writeFile(promptsPath, serializePromptMarkdown(document), 'utf8')
 })
 
 const createWindow = () => {
@@ -74,5 +80,3 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-

@@ -5,6 +5,7 @@ declare global {
     prompter: {
       loadPrompts: () => Promise<PromptDocument>
       openPromptsFile: () => Promise<void>
+      savePrompts: (document: PromptDocument) => Promise<void>
     }
   }
 }

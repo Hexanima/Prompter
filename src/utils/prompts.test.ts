@@ -5,7 +5,8 @@ import { scrollToElement } from './scroll-to-element'
 import { toggleId } from './toggle-id'
 import { ensureEditablePromptsFile, getPromptPaths } from './prompts-storage'
 import { getPrompterApi } from './renderer-api'
-import { getPromptSegments, parsePromptMarkdown, resolvePrompt } from './prompts'
+import { duplicatePrompt, getPromptFieldNames, getPromptFields, getPromptFieldUsageCount, getPromptSegments, getMissingPromptFieldCount, movePrompt, parsePromptMarkdown, removePrompt, resolvePrompt, serializePromptMarkdown } from './prompts'
+import { insertPromptField, normalizePromptFieldName, validatePromptFieldName } from './prompt-editor'
 
 describe('parsePromptMarkdown', () => {
   it('separa prompts y detecta cada campo una sola vez', () => {
@@ -232,5 +233,124 @@ describe('prompt file actions', () => {
     } as unknown as Window
 
     expect(getPrompterApi(target)).toBeNull()
+  })
+})
+
+describe('prompt editing', () => {
+  const prompts = [
+    { id: 0, title: 'Primera', content: 'Contenido {{NOMBRE}}' },
+    { id: 1, title: 'Segunda', description: 'Descripción', content: 'Otro contenido' }
+  ]
+
+  it('serializa el documento editable y permite volver a leerlo', () => {
+    const document = {
+      prompts,
+      fields: [{ name: 'NOMBRE', value: '', label: 'Nombre', type: 'text' as const }]
+    }
+
+    const markdown = serializePromptMarkdown(document)
+
+    expect(parsePromptMarkdown(markdown)).toEqual(document)
+  })
+
+  it('duplica una prompt y conserva el contenido', () => {
+    const result = duplicatePrompt(prompts, 0)
+
+    expect(result[1]).toEqual({ id: 1, title: 'Primera — copia', content: 'Contenido {{NOMBRE}}' })
+  })
+
+  it('elimina una prompt y reindexa las restantes', () => {
+    expect(removePrompt(prompts, 0)).toEqual([
+      { id: 0, title: 'Segunda', description: 'Descripción', content: 'Otro contenido' }
+    ])
+  })
+
+  it('mueve una prompt y mantiene el orden de ids', () => {
+    expect(movePrompt(prompts, 1, -1).map(({ title, id }) => ({ title, id }))).toEqual([
+      { title: 'Segunda', id: 0 },
+      { title: 'Primera', id: 1 }
+    ])
+  })
+})
+
+describe('prompt saving', () => {
+  it('requiere la acción de guardar el documento en el preload', () => {
+    const target = {
+      prompter: {
+        loadPrompts: () => Promise.resolve(null),
+        openPromptsFile: () => Promise.resolve()
+      }
+    } as unknown as Window
+
+    expect(getPrompterApi(target)).toBeNull()
+  })
+})
+
+describe('unused prompt fields', () => {
+  it('conserva la definición de un campo aunque ninguna prompt lo use', () => {
+    const result = parsePromptMarkdown(`<!--
+@field PROYECTO
+label: Proyecto
+help: Se puede reutilizar más adelante.
+type: text
+-->
+Prompt sin campos
+`)
+
+    expect(result.fields).toEqual([
+      {
+        name: 'PROYECTO',
+        value: '',
+        label: 'Proyecto',
+        help: 'Se puede reutilizar más adelante.',
+        type: 'text'
+      }
+    ])
+  })
+})
+
+describe('prompt editor fields', () => {
+  it('normaliza los nombres de inputs nuevos', () => {
+    expect(normalizePromptFieldName('  proyecto actual  ')).toBe('PROYECTO_ACTUAL')
+  })
+
+  it('rechaza nombres inválidos y duplicados', () => {
+    expect(validatePromptFieldName('con espacios', [])).toBe('El nombre solo puede usar letras, números y guiones bajos.')
+    expect(validatePromptFieldName('PROYECTO', [{ name: 'proyecto', value: '' }])).toBe('Ya existe un input con ese nombre.')
+  })
+
+  it('inserta un placeholder en la posición del cursor', () => {
+    expect(insertPromptField('Hola mundo', 'PROYECTO', 5, 10)).toEqual({
+      content: 'Hola {{PROYECTO}}',
+      cursor: 17
+    })
+  })
+})
+
+describe('prompt field modal', () => {
+  it('obtiene una sola vez los inputs usados por una prompt', () => {
+    const fields = getPromptFields('Hola {{NOMBRE}} {{NOMBRE}} {{TAREA}}', [
+      { name: 'NOMBRE', value: 'Nicol', label: 'Nombre' },
+      { name: 'TAREA', value: '', label: 'Tarea' },
+      { name: 'OTRO', value: '', label: 'Otro' }
+    ])
+
+    expect(getPromptFieldNames('Hola {{NOMBRE}} {{NOMBRE}} {{TAREA}}')).toEqual(['NOMBRE', 'TAREA'])
+    expect(fields).toEqual([
+      { name: 'NOMBRE', value: 'Nicol', label: 'Nombre' },
+      { name: 'TAREA', value: '', label: 'Tarea' }
+    ])
+  })
+
+  it('cuenta campos faltantes sin contar dos veces un input repetido', () => {
+    expect(getMissingPromptFieldCount('Hola {{NOMBRE}} {{NOMBRE}} {{TAREA}}', { NOMBRE: '', TAREA: 'Auditar' })).toBe(1)
+  })
+
+  it('cuenta en cuántas prompts se utiliza un input compartido', () => {
+    expect(getPromptFieldUsageCount('NOMBRE', [
+      { id: 0, title: 'Primera', content: '{{NOMBRE}} y {{NOMBRE}}' },
+      { id: 1, title: 'Segunda', content: 'Sin ese campo' },
+      { id: 2, title: 'Tercera', content: 'Otra vez {{NOMBRE}}' }
+    ])).toBe(2)
   })
 })
