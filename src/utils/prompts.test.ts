@@ -5,7 +5,7 @@ import { scrollToElement } from './scroll-to-element'
 import { toggleId } from './toggle-id'
 import { ensureEditablePromptsFile, getPromptPaths } from './prompts-storage'
 import { getPrompterApi } from './renderer-api'
-import { duplicatePrompt, getPromptFieldNames, getPromptFields, getPromptFieldUsageCount, getPromptSegments, getMissingPromptFieldCount, movePrompt, parsePromptMarkdown, removePrompt, resolvePrompt, serializePromptMarkdown } from './prompts'
+import { duplicatePrompt, getPromptFieldNames, getPromptFields, getPromptFieldUsageCount, getPromptSegments, isPromptFieldMetadataIncomplete, isPromptMetadataIncomplete, getMissingPromptFieldCount, movePrompt, parsePromptMarkdown, removePrompt, resolvePrompt, serializePromptMarkdown } from './prompts'
 import { insertPromptField, normalizePromptFieldName, validatePromptFieldName } from './prompt-editor'
 
 describe('parsePromptMarkdown', () => {
@@ -352,5 +352,17 @@ describe('prompt field modal', () => {
       { id: 1, title: 'Segunda', content: 'Sin ese campo' },
       { id: 2, title: 'Tercera', content: 'Otra vez {{NOMBRE}}' }
     ])).toBe(2)
+  })
+})
+describe('metadata incompleta', () => {
+  it('detecta prompts con título automático y sin descripción', () => {
+    expect(isPromptMetadataIncomplete({ id: 0, title: 'Prompt 1', content: 'Contenido' })).toBe(true)
+    expect(isPromptMetadataIncomplete({ id: 0, title: 'Auditar tareas', content: 'Contenido' })).toBe(false)
+    expect(isPromptMetadataIncomplete({ id: 0, title: 'Prompt 1', description: 'Información', content: 'Contenido' })).toBe(false)
+  })
+
+  it('detecta inputs sin metadata visible', () => {
+    expect(isPromptFieldMetadataIncomplete({ name: 'PROYECTO', value: '' })).toBe(true)
+    expect(isPromptFieldMetadataIncomplete({ name: 'PROYECTO', value: '', label: 'Proyecto' })).toBe(false)
   })
 })

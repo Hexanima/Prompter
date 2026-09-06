@@ -84,76 +84,92 @@ type: text
 title: Auditar rama contra otra rama
 description: Revisa únicamente los cambios propios de una rama usando triple punto.
 -->
+
 Auditá origin/{{RAMA_OBJETIVO}} contra origin/{{RAMA_DESTINO}} usando triple punto (git diff origin/{{RAMA_DESTINO}}...origin/{{RAMA_OBJETIVO}}) para leer solo los commits propios de la rama.
 NO hagas cambios. NO ejecutes tests, el CI se encarga de eso.
- 
+
 Si hay observaciones, generá al final un bloque markdown listo para comentario de GitHub (wrapper de cuatro backticks, código de ejemplo con tres backticks) con solo los puntos ⚠️ y ❌ encontrados.
- 
+
 [Titulo tarea]
 {{TITULO_TAREA}}
- 
+
 [Descripcion tarea / Criterios de aceptación]
 {{DESCRIPCION_TAREA}}
+
 ---
+
 <!--
 @prompt
 title: Preparar plan de implementación
 description: Genera un plan técnico accionable y orientado a TDD.
 -->
+
 Prepará un plan de implementación para la tarea {{CODIGO_TAREA}}. NO hagas commits.
- 
+
 Revisá el código existente para entender el estado actual antes de planificar.
 El plan debe cubrir todos los repos afectados (frontend, backend, adminPanel) si la tarea lo requiere.
 Seguí TDD: incluí en el plan qué tests escribir antes de implementar.
- 
+
 [Titulo]
 {{TITULO_TAREA}}
- 
+
 [Descripcion / Criterios de aceptación]
 {{DESCRIPCION_TAREA}}
+
 ---
+
 <!--
 @prompt
 title: Evaluar implementación de una tarea
 description: Determina si la tarea está completamente, parcialmente o no implementada.
 -->
+
 Evaluá si la siguiente tarea ya está implementada en origin/dev.
 NO hagas cambios. NO ejecutes tests.
- 
+
 Revisá el código existente y determiná:
+
 - ✅ Completamente implementado
 - ⚠️ Parcialmente implementado (indicá qué falta)
 - ❌ No implementado
- 
+
 [Titulo]
 {{TITULO_TAREA}}
- 
+
 [Descripcion / Criterios de aceptación]
 {{DESCRIPCION_TAREA}}
+
 ---
+
 <!--
 @prompt
 title: Generar PRD desde una propuesta
 description: Convierte una propuesta del cliente en un PRD alineado con el código existente.
 -->
+
 Analizá el PDF adjunto (propuesta del cliente) y el código existente del proyecto.
 Generá un PRD en markdown contemplando los cambios necesarios.
 NO hagas cambios. NO hagas commits.
 
 El PRD debe incluir:
+
 - Resumen de la propuesta
 - Funcionalidades requeridas
 - Cambios necesarios en el proyecto (frontend, backend, adminPanel, web según corresponda)
 - Criterios de aceptación por funcionalidad
+
 ---
+
 <!--
 @prompt
 title: Descomponer PRD en tareas
 description: Divide un PRD en tareas de desarrollo pequeñas, accionables y estimables.
 -->
+
 Sos un tech lead senior. Te voy a pasar un PRD y tu tarea es descomponerlo en tareas de desarrollo pequeñas y accionables.
 
 Para cada tarea:
+
 - **Título**: corto y en formato imperativo ("Crear endpoint X", "Agregar componente Y")
 - **Descripción**: qué hay que hacer y por qué, en 2-3 oraciones
 - **Criterios de aceptación**: lista de condiciones concretas y verificables que indican que la tarea está terminada
@@ -161,6 +177,7 @@ Para cada tarea:
 - **Dependencias**: IDs de otras tareas que deben estar completas antes
 
 Reglas:
+
 - Ninguna tarea debe tomar más de un día. Si algo es XL, subdivididlo automáticamente.
 - Las tareas deben ser lo suficientemente pequeñas para hacer un PR atómico por cada una.
 - Separar siempre backend de frontend, aunque sean parte del mismo feature.
@@ -171,15 +188,19 @@ Formato de salida: Markdown, agrupado por fase o feature según esté organizado
 
 PRD:
 {{PRD}}
+
 ---
+
 <!--
 @prompt
 title: Descomponer auditoría en tareas
 description: Convierte las observaciones de una auditoría en tareas de desarrollo.
 -->
-Sos un tech lead senior. Te voy a pasar una auditoria y tu tarea es descomponerlo en tareas de desarrollo pequeñas y accionables. 
+
+Sos un tech lead senior. Te voy a pasar una auditoria y tu tarea es descomponerlo en tareas de desarrollo pequeñas y accionables.
 
 Para cada tarea:
+
 - **Título**: corto y en formato imperativo ("Crear endpoint X", "Agregar componente Y")
 - **Descripción**: qué hay que hacer y por qué, en 2-3 oraciones
 - **Criterios de aceptación**: lista de condiciones concretas y verificables que indican que la tarea está terminada
@@ -187,37 +208,43 @@ Para cada tarea:
 - **Dependencias**: IDs de otras tareas que deben estar completas antes
 
 Reglas:
+
 - Ninguna tarea debe tomar más de un día. Si algo es XL, subdivididlo automáticamente.
 - Las tareas deben ser lo suficientemente pequeñas para hacer un PR atómico por cada una.
 - Separar siempre backend de frontend, aunque sean parte del mismo feature.
 - Identificar primero las tareas de setup e infraestructura, ya que otras dependen de ellas.
-- Si la auditoria tiene ambigüedades que bloquean el desarrollo, listarlas al final como "Preguntas abiertas" antes de poder estimar esas tareas. 
+- Si la auditoria tiene ambigüedades que bloquean el desarrollo, listarlas al final como "Preguntas abiertas" antes de poder estimar esas tareas.
 
-Formato de salida: Markdown, agrupado por fase o feature según esté organizado el PRD.
----
+## Formato de salida: Markdown, agrupado por fase o feature según esté organizado el PRD.
+
 <!--
 @prompt
 title: Auditar PRD contra el código
 description: Evalúa cada requisito del PRD contra la implementación existente.
 -->
+
 Actuá como un Tech Lead senior. Voy a pasarte un PDF/PRD y tu tarea es auditarlo contra el código existente del proyecto.
 
 Para cada punto evaluá:
+
 - ✅ Completamente implementado (una línea, sin detalle adicional)
 - ⚠️ A corregir
 - ❌ No implementado
 
 Para cada ⚠️ y ❌ incluí:
+
 - **Problema:** qué está mal o falta y por qué es un problema
 - **Solución sugerida:** cómo debería implementarse correctamente
 - **Estimación:** S (menos de 2hs) / M (medio día) / L (día completo) / XL (más de un día)
 
 **Repos a revisar:**
+
 - divelife-frontend
 - divelife-backend
 - divelife-adminPanel
 
 **Reglas:**
+
 - NO hagas cambios. NO hagas commits.
 - NO ejecutes tests, el CI se encarga de eso.
 - Si el PRD tiene ambigüedades que impiden evaluar, listarlas al final como "Preguntas abiertas" con contexto suficiente para tomar una decisión.
@@ -226,12 +253,15 @@ Para cada ⚠️ y ❌ incluí:
 
 PDF/PRD:
 {{PRD}}
+
 ---
+
 <!--
 @prompt
 title: Analizar horas del proyecto
 description: Completa un reporte profesional usando Jira, Confluence y los registros de horas.
 -->
+
 Analiza el trabajo realizado en {{PROYECTO}} durante el periodo comprendido entre {{FECHA_INICIO}} y {{FECHA_FIN}}, consultando Jira y Confluence.
 
 Adjunto tres elementos:

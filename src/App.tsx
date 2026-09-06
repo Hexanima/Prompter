@@ -8,7 +8,7 @@ import { focusField } from './utils/focus-field'
 import { getPrompterApi } from './utils/renderer-api'
 import { scrollToElement } from './utils/scroll-to-element'
 import { toggleId } from './utils/toggle-id'
-import { getMissingPromptFieldCount, getPromptFields, getPromptSegments, removePrompt, resolvePrompt, type Prompt, type PromptDocument, type PromptField } from './utils/prompts'
+import { getMissingPromptFieldCount, getPromptFields, getPromptSegments, isPromptFieldMetadataIncomplete, isPromptMetadataIncomplete, removePrompt, resolvePrompt, type Prompt, type PromptDocument, type PromptField } from './utils/prompts'
 
 interface EditorState {
   promptIndex: number | null
@@ -28,6 +28,7 @@ function App() {
   const [deletePromptIndex, setDeletePromptIndex] = useState<number | null>(null)
   const [promptFieldsIndex, setPromptFieldsIndex] = useState<number | null>(null)
   const [isFieldsManagerOpen, setIsFieldsManagerOpen] = useState(false)
+  const [fieldsManagerFieldName, setFieldsManagerFieldName] = useState<string | null>(null)
   const [isSavingFields, setIsSavingFields] = useState(false)
   const [fieldsManagerError, setFieldsManagerError] = useState<string | null>(null)
   const [editorError, setEditorError] = useState<string | null>(null)
@@ -91,14 +92,16 @@ function App() {
     }
   }
 
-  const openFieldsManager = () => {
+  const openFieldsManager = (fieldName?: string) => {
     setFieldsManagerError(null)
+    setFieldsManagerFieldName(fieldName ?? null)
     setIsFieldsManagerOpen(true)
   }
 
   const closeFieldsManager = () => {
     if (isSavingFields) return
     setFieldsManagerError(null)
+    setFieldsManagerFieldName(null)
     setIsFieldsManagerOpen(false)
   }
 
@@ -116,6 +119,7 @@ function App() {
     try {
       await prompterApi.savePrompts({ prompts: document.prompts, fields })
       updateLoadedDocument(await prompterApi.loadPrompts())
+      setFieldsManagerFieldName(null)
       setIsFieldsManagerOpen(false)
     } catch {
       setFieldsManagerError('No se pudieron guardar los inputs. Verificá que PROMPTS.md esté disponible.')
@@ -211,7 +215,8 @@ function App() {
         resolvedContent: resolvePrompt(prompt.content, values),
         segments: getPromptSegments(prompt.content, values),
         missingFieldCount: getMissingPromptFieldCount(prompt.content, values),
-        fieldCount: getPromptFields(prompt.content, document?.fields ?? []).length
+        fieldCount: getPromptFields(prompt.content, document?.fields ?? []).length,
+        needsMetadata: isPromptMetadataIncomplete(prompt)
       })) ?? [],
     [document, values]
   )
@@ -327,7 +332,7 @@ function App() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={openFieldsManager}
+                    onClick={() => openFieldsManager()}
                     className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 transition hover:border-cyan-400 hover:text-cyan-300"
                   >
                     Gestionar inputs
@@ -347,7 +352,22 @@ function App() {
 
                     return (
                       <label key={name} className="block">
-                        <span className="mb-2 block text-sm font-medium text-slate-300">{label ?? name}</span>
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium text-slate-300">{label ?? name}</span>
+                          {isPromptFieldMetadataIncomplete(field) && (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                openFieldsManager(name)
+                              }}
+                              className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300 transition hover:bg-amber-500/25"
+                            >
+                              Completar información
+                            </button>
+                          )}
+                        </div>
                         {help && <span className="mb-2 block text-xs leading-5 text-slate-500">{help}</span>}
                         {type === 'textarea' ? (
                           <textarea
@@ -393,7 +413,7 @@ function App() {
                 <span className="text-sm font-medium">Nueva prompt</span>
               </button>
 
-              {resolvedPrompts.map(({ id, title, description, resolvedContent, segments, missingFieldCount, fieldCount }, index) => (
+              {resolvedPrompts.map(({ id, title, description, resolvedContent, segments, missingFieldCount, fieldCount, needsMetadata }, index) => (
                 <article ref={(element) => { promptRefs.current[id] = element }} key={id} className="scroll-mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
                   <div className="mb-4 flex items-center justify-between gap-4">
                     <button
@@ -410,6 +430,15 @@ function App() {
                       </span>
                     </button>
                     <div className="flex flex-wrap items-center justify-end gap-2">
+                      {needsMetadata && (
+                        <button
+                          type="button"
+                          onClick={() => openPromptEditor(index)}
+                          className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-300 transition hover:border-amber-400 hover:bg-amber-500/15"
+                        >
+                          Completar metadata
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => setPromptFieldsIndex(index)}
@@ -502,6 +531,7 @@ function App() {
       {isFieldsManagerOpen && (
         <FieldsManagerDialog
           initialFields={document.fields}
+          initialFieldName={fieldsManagerFieldName}
           prompts={document.prompts}
           isSaving={isSavingFields}
           error={fieldsManagerError}

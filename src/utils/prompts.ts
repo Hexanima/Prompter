@@ -141,6 +141,14 @@ export function getMissingPromptFieldCount(content: string, values: Record<strin
   }).length
 }
 
+export function isPromptMetadataIncomplete(prompt: Prompt): boolean {
+  return /^Prompt \d+$/.test(prompt.title) && !prompt.description?.trim()
+}
+
+export function isPromptFieldMetadataIncomplete(field: PromptField): boolean {
+  return !field.label?.trim() && !field.help?.trim() && !field.placeholder?.trim() && !field.type
+}
+
 export function getPromptFieldUsageCount(name: string, prompts: Prompt[]): number {
   return prompts.filter((prompt) => getPromptFieldNames(prompt.content).includes(name)).length
 }

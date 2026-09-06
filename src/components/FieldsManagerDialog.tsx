@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import ConfirmDialog from './ConfirmDialog'
-import { getPromptFieldNames, getPromptFieldUsageCount, type Prompt, type PromptField, type PromptFieldType } from '../utils/prompts'
+import { getPromptFieldNames, getPromptFieldUsageCount, isPromptFieldMetadataIncomplete, type Prompt, type PromptField, type PromptFieldType } from '../utils/prompts'
 import { normalizePromptFieldName, validatePromptFieldName } from '../utils/prompt-editor'
 
 interface FieldsManagerDialogProps {
   initialFields: PromptField[]
+  initialFieldName?: string | null
   prompts: Prompt[]
   isSaving: boolean
   error: string | null
@@ -58,15 +60,17 @@ function toPromptField(draft: FieldDraft): PromptField {
 
 function FieldsManagerDialog({
   initialFields,
+  initialFieldName,
   prompts,
   isSaving,
   error,
   onCancel,
   onSave
 }: FieldsManagerDialogProps) {
+  const initialField = initialFields.find((field) => field.name === initialFieldName)
   const [draftFields, setDraftFields] = useState<PromptField[]>(initialFields.map((field) => ({ ...field })))
-  const [fieldDraft, setFieldDraft] = useState<FieldDraft>({ ...emptyFieldDraft })
-  const [editingFieldName, setEditingFieldName] = useState<string | null>(null)
+  const [fieldDraft, setFieldDraft] = useState<FieldDraft>(() => toFieldDraft(initialField))
+  const [editingFieldName, setEditingFieldName] = useState<string | null>(initialFieldName ?? null)
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [deleteFieldName, setDeleteFieldName] = useState<string | null>(null)
 
@@ -149,6 +153,15 @@ function FieldsManagerDialog({
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="truncate font-medium text-slate-200">{field.label ?? field.name}</span>
                           <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 font-mono text-xs text-cyan-300">{'{{'}{field.name}{'}}'}</span>
+                          {isPromptFieldMetadataIncomplete(field) && (
+                            <button
+                              type="button"
+                              onClick={() => openEditField(field)}
+                              className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300 transition hover:bg-amber-500/25"
+                            >
+                              Completar información
+                            </button>
+                          )}
                         </div>
                         {field.help && <p className="mt-1 text-sm text-slate-500">{field.help}</p>}
                         <p className="mt-2 text-xs text-slate-500" title={usageTitles.join(', ') || 'No se utiliza en ninguna prompt'}>
@@ -201,8 +214,8 @@ function FieldsManagerDialog({
             <button type="button" onClick={() => onSave(draftFields)} disabled={isSaving} className="rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-wait disabled:opacity-50">{isSaving ? 'Guardando…' : 'Guardar cambios'}</button>
           </footer>
 
-          {isFieldModalOpen && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="field-editor-title">
+          {isFieldModalOpen && createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="field-editor-title">
               <div className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -251,7 +264,8 @@ function FieldsManagerDialog({
                   <button type="button" onClick={saveField} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">{editingFieldName ? 'Guardar input' : 'Crear input'}</button>
                 </div>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </div>
